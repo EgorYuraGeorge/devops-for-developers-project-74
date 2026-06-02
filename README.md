@@ -20,19 +20,19 @@
 ## Структура проекта
 
 .
-├── app/ # Приложение JS Fastify Blog
-├── services/
-│ └── caddy/
-│ └── Caddyfile # Конфигурация обратного прокси
-├── .github/
-│ └── workflows/
-│ └── push.yml # CI/CD pipeline
-├── docker-compose.yml # Базовая конфигурация (production)
-├── docker-compose.override.yml # Переопределение для разработки
-├── Dockerfile # Для разработки
-├── Dockerfile.production # Для production-сборки
-├── Makefile # Команды для управления проектом
-└── .env.example # Пример переменных окружения
+devops-for-developers-project-74/
+├── .github/workflows/push.yml          # CI/CD пайплайн
+├── app/                                # Приложение JS Fastify Blog
+├── services/caddy/Caddyfile            # Конфигурация обратного прокси
+├── .dockerignore                       # Исключения для Docker
+├── .env.example                        # Пример переменных окружения
+├── .gitignore                          # Исключения для Git
+├── docker-compose.yml                  # Production конфигурация
+├── docker-compose.override.yml         # Development конфигурация
+├── Dockerfile                          # Для разработки
+├── Dockerfile.production               # Для production
+├── Makefile                            # Команды управления
+└── README.md                           # Документация с бейджем
 
 
 ## Быстрый старт
