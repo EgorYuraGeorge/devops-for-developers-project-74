@@ -14,12 +14,10 @@
 
 - Docker версии 20.10 или выше
 - Docker Compose версии 1.27.0 или выше
-- Node.js 20.x (опционально, для локальной разработки)
 - Make
 
 ## Структура проекта
 
-.
 devops-for-developers-project-74/
 ├── .github/workflows/push.yml          # CI/CD пайплайн
 ├── app/                                # Приложение JS Fastify Blog
@@ -34,13 +32,12 @@ devops-for-developers-project-74/
 ├── Makefile                            # Команды управления
 └── README.md                           # Документация с бейджем
 
-
 ## Быстрый старт
 
 ### Подготовка окружения
 
-```bash
 # Клонируйте репозиторий
+
 git clone https://github.com/EgorYuraGeorge/devops-for-developers-project-74.git
 cd devops-for-developers-project-74
 
@@ -50,41 +47,35 @@ cp .env.example .env
 # Установите зависимости
 make setup
 
-## Запуск в режиме разработки
-
-bash
+### Запуск в режиме разработки
 
 make dev
 
 Приложение будет доступно по адресу: https://localhost
 
-## Запуск тестов
+    Примечание: При первом запуске браузер покажет предупреждение о небезопасном соединении. Это нормально, так как Caddy использует самоподписанный сертификат для localhost. Нажмите "Дополнительно" → "Принять риск и продолжить".
 
-bash
+## Запуск тестов
 
 make test
 
-## Production-сборка
+Тесты выполняются в Docker с использованием PostgreSQL.
 
-bash
+## Production-сборка
 
 # Собрать образ
 docker compose -f docker-compose.yml build app
-
 # Запустить
 docker compose -f docker-compose.yml up
 
 ## Docker Hub
 
-Образ доступен на Docker Hub:
-egoryurageorge/devops-for-developers-project-74
-bash
-
+# Загрузка образа
 docker pull egoryurageorge/devops-for-developers-project-74:latest
+# Запуск приложения из образа
 docker run -p 8080:8080 -e NODE_ENV=development egoryurageorge/devops-for-developers-project-74 make dev
 
 ## Переменные окружения
-
 Переменная	Описание	Значение по умолчанию
 DATABASE_HOST	Хост базы данных	db
 DATABASE_NAME	Имя базы данных	postgres
@@ -104,28 +95,48 @@ DATABASE_PORT	Порт БД	5432
 
 ## Makefile команды
 
-    make dev - Запуск приложения в режиме разработки
-
-    make test - Запуск тестов
-
-    make ci - Запуск тестов в CI-окружении
+Команда	Описание
+make setup	Установка зависимостей приложения
+make dev	Запуск приложения в режиме разработки
+make test	Запуск тестов
+make ci	Запуск тестов в CI-окружении (с пересборкой)
 
 ## CI/CD
 
-При пуше в ветку main автоматически запускаются тесты и собирается Docker образ, который публикуется на Docker Hub.
+При пуше в ветку main автоматически:
+
+    Запускаются тесты в Docker с PostgreSQL
+
+    При успешном прохождении тестов собирается Docker образ
+
+    Образ публикуется на Docker Hub с тегом latest
 
 ## Технологии
 
-    Node.js 20
+    Node.js 22
 
-    Fastify
+    Fastify - веб-фреймворк
 
-    PostgreSQL
+    PostgreSQL 18 - база данных
 
-    Docker & Docker Compose
+    Sequelize - ORM
 
-    Caddy (reverse proxy)
+    Docker & Docker Compose - контейнеризация
 
-    GitHub Actions
+    Caddy - обратный прокси с автоматическим HTTPS
 
-    Sequelize ORM
+    GitHub Actions - CI/CD
+
+    Webpack - сборка фронтенда
+
+    Vitest - тестирование
+
+## Примечания
+
+    Приложение использует Sequelize с диалектом PostgreSQL для тестового и production окружения
+
+    Локальная разработка использует SQLite через docker-compose.override.yml
+
+    Caddy автоматически выпускает самоподписанный сертификат для localhost
+
+    В CI используется принудительная пересборка образа без кеша для гарантии актуальности зависимостей
