@@ -12,131 +12,163 @@
 
 ## Требования к системе
 
-- Docker версии 20.10 или выше
-- Docker Compose версии 1.27.0 или выше
-- Make
+* Docker версии 20.10 или выше
+* Docker Compose версии 1.27.0 или выше
+* Make
 
 ## Структура проекта
 
-devops-for-developers-project-74/
-├── .github/workflows/push.yml          # CI/CD пайплайн
+```text
+.
+├── .github/
+│   └── workflows/
+│       └── push.yml                     # CI/CD pipeline
 ├── app/                                # Приложение JS Fastify Blog
-├── services/caddy/Caddyfile            # Конфигурация обратного прокси
-├── .dockerignore                       # Исключения для Docker
-├── .env.example                        # Пример переменных окружения
-├── .gitignore                          # Исключения для Git
-├── docker-compose.yml                  # Production конфигурация
-├── docker-compose.override.yml         # Development конфигурация
-├── Dockerfile                          # Для разработки
-├── Dockerfile.production               # Для production
-├── Makefile                            # Команды управления
-└── README.md                           # Документация с бейджем
+├── services/
+│   └── caddy/
+│       └── Caddyfile                    # Конфигурация обратного прокси
+├── .dockerignore                        # Файлы, исключаемые из контекста сборки Docker
+├── .env.example                         # Пример файла с переменными окружения
+├── .gitignore                           # Файлы, исключаемые из Git
+├── docker-compose.yml                   # Базовая конфигурация (production/тесты)
+├── docker-compose.override.yml          # Переопределение для разработки (Caddy, volumes)
+├── Dockerfile                           # Для разработки (Node.js 22)
+├── Dockerfile.production                # Для production-сборки (Node.js 22)
+├── Makefile                             # Команды для управления проектом
+└── README.md                            # Документация проекта
+```
 
 ## Быстрый старт
 
 ### Подготовка окружения
 
+```bash
 # Клонируйте репозиторий
-
 git clone https://github.com/EgorYuraGeorge/devops-for-developers-project-74.git
 cd devops-for-developers-project-74
 
-# Скопируйте файл с переменными окружения
+# Создайте файл с переменными окружения
+
+# Linux/macOS:
 cp .env.example .env
+
+# Windows (PowerShell):
+Copy-Item .env.example .env
 
 # Установите зависимости
 make setup
+```
 
-### Запуск в режиме разработки
+## Запуск в режиме разработки
 
+```bash
 make dev
+```
 
-Приложение будет доступно по адресу: https://localhost
+Приложение работает на порту 8080 внутри Docker-сети. Caddy принимает запросы извне на портах 80 и 443, проксируя их в приложение. Доступ осуществляется по адресу:
 
-    Примечание: При первом запуске браузер покажет предупреждение о небезопасном соединении. Это нормально, так как Caddy использует самоподписанный сертификат для localhost. Нажмите "Дополнительно" → "Принять риск и продолжить".
+```text
+https://localhost
+```
+
+> Примечание: При первом запуске браузер покажет предупреждение о небезопасном соединении. Это нормально, так как Caddy использует самоподписанный сертификат для localhost. Нажмите "Дополнительно" → "Принять риск и продолжить".
 
 ## Запуск тестов
 
+```bash
 make test
+```
 
-Тесты выполняются в Docker с использованием PostgreSQL.
+Тесты выполняются в Docker с использованием PostgreSQL. Используется файл `docker-compose.yml` без override.
 
 ## Production-сборка
 
+```bash
 # Собрать образ
 docker compose -f docker-compose.yml build app
-# Запустить
+
+# Запустить production-версию
 docker compose -f docker-compose.yml up
+```
 
 ## Docker Hub
 
+Образ доступен на Docker Hub:
+
+```text
+egoryurageorge/devops-for-developers-project-74
+```
+
+```bash
 # Загрузка образа
 docker pull egoryurageorge/devops-for-developers-project-74:latest
-# Запуск приложения из образа
-docker run -p 8080:8080 -e NODE_ENV=development egoryurageorge/devops-for-developers-project-74 make dev
+
+# Запуск production-версии
+docker run -p 8080:8080 egoryurageorge/devops-for-developers-project-74
+```
+
+Приложение запустится с `NODE_ENV=production` (установлено в `Dockerfile.production`).
 
 ## Переменные окружения
-Переменная	Описание	Значение по умолчанию
-DATABASE_HOST	Хост базы данных	db
-DATABASE_NAME	Имя базы данных	postgres
-DATABASE_USERNAME	Пользователь БД	postgres
-DATABASE_PASSWORD	Пароль БД	password
-DATABASE_PORT	Порт БД	5432
+
+Файл `.env.example` содержит все необходимые переменные для подключения к базе данных. Эти переменные используются как в production, так и в тестовом окружении.
+
+| Переменная        | Назначение       | Значение по умолчанию |
+| ----------------- | ---------------- | --------------------- |
+| DATABASE_HOST     | Хост базы данных | db                    |
+| DATABASE_NAME     | Имя базы данных  | postgres              |
+| DATABASE_USERNAME | Пользователь БД  | postgres              |
+| DATABASE_PASSWORD | Пароль БД        | password              |
+| DATABASE_PORT     | Порт БД          | 5432                  |
+
+Все переменные обязательны для работы приложения с PostgreSQL. При локальной разработке они загружаются из файла `.env`. В CI значения заданы по умолчанию в `docker-compose.yml`.
 
 ## Сервисы
 
 Проект состоит из следующих сервисов:
 
-    app - Приложение JS Fastify Blog (порт 8080)
+* app — Приложение JS Fastify Blog (внутренний порт 8080)
+* db — База данных PostgreSQL (внутренний порт 5432)
+* caddy — Обратный прокси-сервер (внешние порты 80, 443)
 
-    db - PostgreSQL база данных (порт 5432)
+Схема запросов:
 
-    caddy - Обратный прокси-сервер (порты 80, 443)
+```text
+Browser → https://localhost:443 → Caddy → http://app:8080
+```
 
 ## Makefile команды
 
-Команда	Описание
-make setup	Установка зависимостей приложения
-make dev	Запуск приложения в режиме разработки
-make test	Запуск тестов
-make ci	Запуск тестов в CI-окружении (с пересборкой)
+| Команда    | Описание                                                           |
+| ---------- | ------------------------------------------------------------------ |
+| make setup | Установка зависимостей приложения                                  |
+| make dev   | Запуск приложения в режиме разработки                              |
+| make test  | Запуск тестов                                                      |
+| make ci    | Запуск тестов в CI-окружении (с принудительной пересборкой образа) |
 
 ## CI/CD
 
-При пуше в ветку main автоматически:
+При пуше в ветку `main` GitHub Actions автоматически:
 
-    Запускаются тесты в Docker с PostgreSQL
-
-    При успешном прохождении тестов собирается Docker образ
-
-    Образ публикуется на Docker Hub с тегом latest
+* Пересобирает образ с флагом `--no-cache`
+* Запускает тесты в Docker с PostgreSQL
+* При успешном прохождении тестов публикует образ на Docker Hub с тегом `latest`
 
 ## Технологии
 
-    Node.js 22
-
-    Fastify - веб-фреймворк
-
-    PostgreSQL 18 - база данных
-
-    Sequelize - ORM
-
-    Docker & Docker Compose - контейнеризация
-
-    Caddy - обратный прокси с автоматическим HTTPS
-
-    GitHub Actions - CI/CD
-
-    Webpack - сборка фронтенда
-
-    Vitest - тестирование
+* Node.js 22
+* Fastify — веб-фреймворк
+* PostgreSQL — база данных
+* Sequelize — ORM
+* Docker & Docker Compose — контейнеризация
+* Caddy — обратный прокси с автоматическим HTTPS
+* GitHub Actions — CI/CD
+* Webpack — сборка фронтенда
+* Vitest — тестирование
 
 ## Примечания
 
-    Приложение использует Sequelize с диалектом PostgreSQL для тестового и production окружения
-
-    Локальная разработка использует SQLite через docker-compose.override.yml
-
-    Caddy автоматически выпускает самоподписанный сертификат для localhost
-
-    В CI используется принудительная пересборка образа без кеша для гарантии актуальности зависимостей
+* Приложение использует Sequelize с диалектом postgres для тестового и production окружения
+* Caddy автоматически выпускает самоподписанный TLS-сертификат для localhost
+* В CI используется принудительная пересборка образа без кеша (`--no-cache`) для гарантии актуальности зависимостей
+* `docker-compose.override.yml` автоматически применяется при запуске `docker compose up` и добавляет Caddy, проброс портов и монтирование томов для разработки
