@@ -2,9 +2,14 @@ FROM node:20.12.2
 
 WORKDIR /app
 
-COPY app/package.json app/package-lock.json ./
+# Копируем package.json
+COPY app/package.json ./
 
-RUN npm install
+# Устанавливаем все зависимости без package-lock.json
+RUN npm install --package-lock false
+
+# Копируем package-lock.json из приложения (для информации)
+COPY app/package-lock.json ./
 
 COPY app/. .
 
