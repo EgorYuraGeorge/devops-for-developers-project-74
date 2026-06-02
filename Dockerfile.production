@@ -4,14 +4,13 @@ WORKDIR /app
 
 COPY app/package.json app/package-lock.json ./
 
-RUN npm install --production
-
-RUN npm install rolldown @rolldown/binding-linux-x64-gnu
+RUN npm install
 
 COPY app/. .
 
 EXPOSE 8080
 ENV NODE_ENV=production
+
 RUN make build
 
 CMD make start
