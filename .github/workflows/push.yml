@@ -14,7 +14,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run tests
-        run: make ci
+        run: |
+          docker compose -f docker-compose.yml build --no-cache app
+          docker compose -f docker-compose.yml up --abort-on-container-exit --exit-code-from app
 
   build_and_push:
     needs: test
