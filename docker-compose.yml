@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile.production
     image: egoryurageorge/devops-for-developers-project-74
+    command: make test
     environment:
       DATABASE_HOST: ${DATABASE_HOST:-db}
       DATABASE_NAME: ${DATABASE_NAME:-postgres}
